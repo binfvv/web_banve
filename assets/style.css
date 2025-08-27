@@ -1,0 +1,269 @@
+body{
+    padding:0px;
+    margin:0px;
+}
+.header {
+    background-color: #0080C0; /* Màu xanh header */
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 0;
+}
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 1200px;
+  padding: 0 20px;
+}
+/* Logo */
+.logo img {
+    padding-top: 1px;
+    height: 45%; /* Chiều cao logo */
+}
+
+
+/* Ngày giờ */
+.date-time p {
+    text-align: left;
+    margin: 0;
+    font-size: 18px;
+    color: white;
+}
+
+.container{
+  padding-right: 15px;
+  padding-left: 15px;
+  margin-right: auto;
+  margin-left: auto;
+}
+.container > header{
+    background-size:cover; 
+    background-color: #0085c4;
+    background-position: center;
+    height: 85px; 
+    
+}
+.container > nav{
+    line-height:40px; 
+    background-color:#0085c4;
+    margin-top: 0.8rem; 
+    color:white; 
+    text-align:center; 
+    font-variant:small-caps;
+}   
+.container > article{
+  min-height:400px; 
+  width:50%; 
+  background-color:white; 
+  float:left;
+}
+.container > aside{
+  min-height:400px; 
+  width:40%; 
+  background-color:white; 
+  float:right;
+}
+
+.container > footer{
+    border-top:5px double orangered; 
+    line-height:50px; 
+    background-color:lightcyan; 
+    text-align:center; 
+    font-variant:small-caps; 
+    clear:both; 
+}
+.container > nav > a{
+    color:white; 
+    text-decoration:none; 
+    margin:0 10px;
+}
+.container > nav > a:hover{
+    color:yellow; 
+    text-decoration:underline; 
+}
+
+
+/* CSS cho form */
+.tim_kiem {
+    background-color: #e9e8e8;
+    max-width: 30rem;
+    margin: 4rem auto;
+    border-radius: 5px;
+    padding: 2.4rem 2rem;
+    text-align: center;
+    padding-top: 2%;
+  }
+  
+  .tim_kiem h2 {
+    text-align: center;
+  }
+  
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  .input-group {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .input-group div {
+    width: 48%; /* Chia đều không gian giữa hai ô */
+  }
+  
+  .input-group label {
+    display: block;
+    margin-bottom: 5px;
+  }
+  
+  .input-group input[type="text"],
+  .input-group input[type="date"] {
+    width: 100%;
+    padding: 8px;
+    border-radius: 3px;
+    border-color: black;
+    box-sizing: border-box;
+  }
+  
+  select{
+    width: 100%;
+    padding: 8px;
+    border-radius: 3px;
+    border-color: black;
+    box-sizing: border-box;
+  }
+  input[type="submit"] {
+    width: 100%;
+    padding: 10px;
+    background-color: #0085c4;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  
+  input[type="submit"]:hover {
+    background-color: #016290;
+  }
+
+  table{
+    border-collapse: separate;
+  }
+  /* dat_ve */
+
+  .dat_ve {
+    padding: 20px;
+    background-color: #fff;
+    margin: 20px;
+    margin-left: 20%;
+    margin-right: 20%;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    
+}
+.seat-selection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 2px solid black;
+  border-radius: 10px;
+  margin: 20px;
+  padding: 10px;
+  margin: 20px auto;
+  width: 50%;
+  overflow: hidden;
+}
+
+.seats {
+  display: flex; /* Xếp các ghế theo chiều ngang */
+  justify-content: center;
+  gap: 10px; /* Khoảng cách giữa các ghế trong một hàng */ 
+  width: 80%;
+}
+
+
+/* Định dạng cho một hàng ghế */
+.seat-row {
+  display: flex;
+  justify-content: center; /* Căn giữa các ghế trong hàng */
+  margin-bottom: 10px; /* Khoảng cách giữa các hàng */
+}
+
+/* Định dạng cho mỗi ghế */
+.seat {
+  width: 3.5vw; 
+  height: 3.5vw; 
+  margin: 1vw; /* Khoảng cách giữa các ghế, thay đổi theo chiều rộng của viewport */
+  text-align: center;
+  line-height: 3.5vw; /* Căn giữa số ghế theo chiều dọc */
+  background-color: #f0f0f0;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 2vw; /* Kích thước chữ thay đổi theo kích thước viewport */
+}
+
+
+/* Định dạng cho ghế còn trống */
+.seat.available {
+  background-color: #4CAF50; /* Màu nền cho ghế còn trống */
+}
+.seat.selected {
+  background-color: #FFD700;
+  color: black;
+}
+/* Định dạng cho ghế đã đặt */
+.seat.booked {
+  background-color: #f44336; /* Màu nền cho ghế đã đặt */
+  cursor: not-allowed; /* Không cho phép chọn ghế đã đặt */
+}
+
+
+.confirm-btn {
+  display: block;
+  margin: 20px auto;
+  padding: 10px 20px;
+  background-color: #0085c4;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  text-align: center;     
+  }
+
+.confirm-btn:hover {
+  background-color: #016290;
+}
+
+/*ds tim kiem*/
+.train-list {
+  margin: 20px;
+  margin-left: 80px;
+  margin-right: 80px;
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+
+/* .train-list-asile{
+  margin: 20px;
+  margin-left: 5px;
+  margin-right: 5px;
+  background: lightgray;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+} */
+
+/* .cart {
+  margin: 20px;
+  margin-left: 80px;
+  margin-right: 80px;
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+} */
