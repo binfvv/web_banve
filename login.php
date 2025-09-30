@@ -1,71 +1,105 @@
-<?php 
-include 'includes/db.php'; // Kết nối tới cơ sở dữ liệu
-session_start();
+<?php
+// login.php — Đăng nhập an toàn (PDO + password_hash)
+if (session_status() === PHP_SESSION_NONE) {
+    // Bảo mật session cookie
+    session_set_cookie_params([
+        'httponly' => true,
+        'secure'   => isset($_SERVER['HTTPS']),
+        'samesite' => 'Lax',
+    ]);
+    session_start();
+}
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // Lấy dữ liệu từ form đăng nhập
-    $username = $_POST['username'];
-    $password = $_POST['password'];
-    
-    // Sử dụng prepared statement để bảo vệ chống SQL Injection
-    $sql = "SELECT * FROM users WHERE username = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("s", $username);
-    $stmt->execute();
-    $result = $stmt->get_result()->fetch_assoc();
-    
-    // Kiểm tra mật khẩu
-    if ($result && $result['password'] == $password) {
-        // Lưu thông tin vào session
-        $_SESSION['user_id'] = $result['id'];
-        $_SESSION['role'] = $result['role'];
-        
-        // Kiểm tra role và chuyển hướng dựa trên role
-        if ($result['role'] === 'khach_hang') {
-            header('Location: http://localhost/web_banve/');
-        } elseif ($result['role'] === 'admin') {
-            header('Location: http://localhost/web_banve/admin/admin.html');
-        }
-        exit();
+require_once __DIR__ . '/includes/db.php'; // tạo $pdo (PDO)
+
+// CSRF token
+if (empty($_SESSION['csrf'])) {
+    $_SESSION['csrf'] = bin2hex(random_bytes(32));
+}
+$csrf = $_SESSION['csrf'];
+
+$error = null;
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Kiểm tra CSRF
+    if (!hash_equals($_SESSION['csrf'] ?? '', $_POST['csrf'] ?? '')) {
+        $error = 'Phiên đăng nhập không hợp lệ. Vui lòng tải lại trang.';
     } else {
-        // Nếu mật khẩu sai, chuyển hướng về trang đăng nhập với thông báo lỗi
-        header('Location: login.php?error=invalid');
-        exit();
-    }
+        // Lấy dữ liệu
+        $username = trim($_POST['username'] ?? '');
+        $password = $_POST['password'] ?? '';
 
-    $stmt->close();
-    $conn->close();
+        if ($username === '' || $password === '') {
+            $error = 'Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu.';
+        } else {
+            // Truy vấn user
+            $stmt = $pdo->prepare("SELECT id, username, password, role FROM users WHERE username = :u LIMIT 1");
+            $stmt->execute([':u' => $username]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($user) {
+                $stored = $user['password'];
+
+                // Nếu cột password đang lưu hash -> dùng password_verify
+                $is_hashed = password_get_info($stored)['algo'] !== 0;
+                $ok = $is_hashed ? password_verify($password, $stored) : hash_equals($stored, $password);
+
+                if ($ok) {
+                    // Nếu trước đây lưu plain text => tự động chuyển sang hash an toàn
+                    if (!$is_hashed) {
+                        $newHash = password_hash($password, PASSWORD_DEFAULT);
+                        $up = $pdo->prepare("UPDATE users SET password = :p WHERE id = :id");
+                        $up->execute([':p' => $newHash, ':id' => $user['id']]);
+                    }
+
+                    // Lưu session
+                    $_SESSION['user_id'] = (int)$user['id'];
+                    $_SESSION['role']    = $user['role'];
+
+                    // Điều hướng theo quyền
+                    if ($user['role'] === 'admin') {
+                        header('Location: /web_banve/admin/admin.html'); // hoặc admin/index.php
+                    } else {
+                        header('Location: /web_banve/');
+                    }
+                    exit;
+                }
+            }
+
+            // Sai thông tin đăng nhập
+            $error = 'Tên đăng nhập hoặc mật khẩu không đúng.';
+        }
+    }
 }
 ?>
-
-
-
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <title>Login</title>
-    <link rel="stylesheet" href="assets/style_login.css">
+  <meta charset="UTF-8">
+  <title>Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="assets/style_login.css">
 </head>
 <body>
-    <!-- Hiển thị thông báo lỗi nếu có lỗi -->
-    <div class="container">
-    <form action="<?php echo $_SERVER['PHP_SELF'];?>" method="POST">
-        <h1>Login</h1>
-        <?php 
-        if (isset($_GET['error']) && $_GET['error'] == 'invalid'): ?>
-            <p style="color: red;">Tên đăng nhập hoặc mật khẩu không đúng. Vui lòng thử lại.</p>
-        <?php endif; 
-        ?>
-        <input type="text" id="username" name="username" placeholder="Username" required>
-        <br>
-        <input type="password" id="password" name="password" placeholder="Password" required><br>
-        <a href="#" class="forgot" target="_blank">Forgot password?</a>
-        <br>
-        <input type="submit" value="Login" class="btn"><br>
-        <label for="">Don't have an account? </label><a href="signup.php" class="forgot"> Signup</a>
+  <div class="container">
+    <form action="login.php" method="POST" autocomplete="off">
+      <h1>Login</h1>
+
+      <?php if ($error): ?>
+        <p style="color:#d93025;margin-bottom:10px;"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></p>
+      <?php endif; ?>
+
+      <input type="hidden" name="csrf" value="<?= htmlspecialchars($csrf, ENT_QUOTES, 'UTF-8') ?>">
+
+      <input type="text" id="username" name="username" placeholder="Username" required>
+      <br>
+      <input type="password" id="password" name="password" placeholder="Password" required>
+      <br>
+      <a href="#" class="forgot" target="_blank">Forgot password?</a>
+      <br>
+      <input type="submit" value="Login" class="btn"><br>
+      <label>Don't have an account? </label><a href="signup.php" class="forgot"> Signup</a>
     </form>
-    </div>
+  </div>
 </body>
 </html>
-

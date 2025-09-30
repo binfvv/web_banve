@@ -1,16 +1,21 @@
 <?php
-// Thông tin kết nối cơ sở dữ liệu
-$servername = "localhost"; // Địa chỉ máy chủ
-$username = "root";        // Tên người dùng MySQL
-$password = "";            // Mật khẩu MySQL
-$dbname = "web_ban_ve";    // Tên cơ sở dữ liệu
+// includes/db.php – Kết nối PDO dùng chung
+$DB_HOST = 'localhost';
+$DB_NAME = 'web_ban_ve';   // tên database của bạn
+$DB_USER = 'root';
+$DB_PASS = '';
 
-// Tạo kết nối
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-// Kiểm tra kết nối
-if ($conn->connect_error) {
-    die("Kết nối thất bại: " . $conn->connect_error);
+try {
+    $pdo = new PDO(
+        "mysql:host=$DB_HOST;dbname=$DB_NAME;charset=utf8mb4",
+        $DB_USER,
+        $DB_PASS,
+        [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        ]
+    );
+} catch (Throwable $e) {
+    die("Không thể kết nối CSDL: " . $e->getMessage());
 }
-//echo "Kết nối thành công!";
 ?>

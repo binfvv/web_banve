@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="vi">
+<html lang="vi" data-theme="auto">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -8,71 +8,113 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
   <!-- Tabler Icons -->
   <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet" />
-  <!-- Chart.js for demo charts -->
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
-    :root { --sidebar-w: 260px; }
-    body { background: #f8f9fb; }
+    :root { --sidebar-w: 260px; --radius: 14px; }
+    [data-theme="dark"] body { background:#0b0e12; }
+    body { background:#f8f9fb; }
+
+    /* Sidebar */
     .sidebar {
-      position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w);
-      background: #0d6efd; color: #fff; padding: 14px 10px; overflow-y: auto;
+      position: fixed; inset:0 auto 0 0; width:var(--sidebar-w);
+      background:#0d6efd; color:#fff; padding:14px 10px; overflow-y:auto; z-index:1040;
+      transition: width .2s ease;
     }
-    .sidebar .brand { padding: 10px 12px; font-weight: 700; font-size: 1.2rem; }
-    .sidebar a { color: #e7f1ff; text-decoration: none; display: flex; gap: 10px; align-items: center;
-      padding: 10px 12px; border-radius: 10px; }
-    .sidebar a:hover, .sidebar a.active { background: #0b5ed7; color: #fff; }
-    .content { margin-left: var(--sidebar-w); min-height: 100vh; }
-    .topbar { position: sticky; top: 0; z-index: 20; background: #fff; border-bottom: 1px solid #e9ecef; }
-    .card { border-radius: 16px; }
-    .section { display: none; }
-    .section.active { display: block; }
+    .sidebar .brand { padding: 10px 12px; font-weight:700; font-size:1.1rem; }
+    .sidebar a { color:#e7f1ff; text-decoration:none; display:flex; gap:10px; align-items:center;
+      padding:9px 12px; border-radius:10px; }
+    .sidebar a:hover, .sidebar a.active { background:#0b5ed7; color:#fff; }
+    .sidebar .section-hint{ color:#d0e4ff; opacity:.8; }
+
+    /* Content */
+    .content { margin-left:var(--sidebar-w); min-height:100vh; transition: margin-left .2s ease; }
+    .topbar { position:sticky; top:0; z-index:20; background:#fff; border-bottom:1px solid #e9ecef; }
+    [data-theme="dark"] .topbar { background:#0f1218; border-color:#1a2030; }
+
+    .card { border-radius: var(--radius); }
+    .section { display:none; }
+    .section.active { display:block; }
+    .table thead th { white-space:nowrap; }
+
+    /* Compact mode (collapse sidebar) */
+    .sidebar.collapsed { width:72px; }
+    .sidebar.collapsed .brand span, .sidebar.collapsed nav a span, .sidebar.collapsed .section-hint { display:none; }
+    .content.collapsed { margin-left:72px; }
+
+    /* Skeleton */
+    .skeleton { background:linear-gradient(90deg,#eee 25%,#f5f5f5 37%,#eee 63%); background-size:400% 100%; animation:s 1.2s ease infinite; border-radius:8px; }
+    @keyframes s { 0%{background-position:100% 50%} 100%{background-position:0 50%} }
+
+    /* Badges */
+    .badge-soft {
+      border:1px solid transparent; background:#f3f6ff; color:#2f5aff;
+    }
+    [data-theme="dark"] .badge-soft { background:#101826; color:#7aa2ff; border-color:#1a2541; }
+
+    /* Footer hint */
+    .muted { color:#93a0b5; font-size:12px; }
+
+    /* Search in section */
+    .section-search { max-width: 380px; }
   </style>
 </head>
 <body>
   <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="brand d-flex align-items-center gap-2">
-      <i class="ti ti-train"></i> VNR Admin
+  <aside class="sidebar" id="sidebar">
+    <div class="d-flex align-items-center justify-content-between px-2">
+      <div class="brand d-flex align-items-center gap-2">
+        <i class="ti ti-train"></i> <span>VNR Admin</span>
+      </div>
+      <button class="btn btn-sm btn-light d-none d-lg-inline-flex" id="btnCollapse" title="Thu gọn">
+        <i class="ti ti-layout-sidebar-left-collapse"></i>
+      </button>
     </div>
-    <div class="mt-2 small text-white-50 px-2">Điều hướng</div>
+
+    <div class="mt-2 section-hint small px-2">Điều hướng</div>
     <nav class="mt-1" id="nav">
-      <a href="#dashboard" class="active"><i class="ti ti-layout-dashboard"></i>Dashboard</a>
-      <div class="small text-white-50 px-2 mt-3 mb-1">Chuyến tàu</div>
-      <a href="#stations"><i class="ti ti-map-pin"></i>Ga</a>
-      <a href="#trains"><i class="ti ti-train"></i>Tàu</a>
-      <a href="#schedules"><i class="ti ti-calendar-time"></i>Lịch trình</a>
-      <div class="small text-white-50 px-2 mt-3 mb-1">Nội dung</div>
-      <a href="#menus"><i class="ti ti-list-details"></i>Menu website</a>
-      <div class="small text-white-50 px-2 mt-3 mb-1">Kinh doanh</div>
-      <a href="#bookings"><i class="ti ti-ticket"></i>Đặt vé</a>
-      <a href="#reports"><i class="ti ti-chart-line"></i>Báo cáo</a>
-      <div class="small text-white-50 px-2 mt-3 mb-1">Khác</div>
-      <a href="#settings"><i class="ti ti-settings"></i>Cài đặt</a>
+      <a href="#dashboard" class="active"><i class="ti ti-layout-dashboard"></i><span>Dashboard</span></a>
+
+      <div class="section-hint small px-2 mt-3 mb-1">Chuyến tàu</div>
+      <a href="#stations"><i class="ti ti-map-pin"></i><span>Ga</span></a>
+      <a href="#trains"><i class="ti ti-train"></i><span>Tàu</span></a>
+      <a href="#schedules"><i class="ti ti-calendar-time"></i><span>Lịch trình</span></a>
+
+      <div class="section-hint small px-2 mt-3 mb-1">Nội dung</div>
+      <a href="#menus"><i class="ti ti-list-details"></i><span>Menu website</span></a>
+
+      <div class="section-hint small px-2 mt-3 mb-1">Kinh doanh</div>
+      <a href="#bookings"><i class="ti ti-ticket"></i><span>Đặt vé</span></a>
+      <a href="#reports"><i class="ti ti-chart-line"></i><span>Báo cáo</span></a>
+
+      <div class="section-hint small px-2 mt-3 mb-1">Khác</div>
+      <a href="#settings"><i class="ti ti-settings"></i><span>Cài đặt</span></a>
     </nav>
   </aside>
 
   <!-- Content -->
-  <div class="content">
+  <div class="content" id="content">
     <!-- Topbar -->
     <div class="topbar">
       <div class="container-fluid py-2 px-3 d-flex align-items-center justify-content-between">
         <div class="d-flex align-items-center gap-2">
-          <span class="fw-semibold">Bảng điều khiển</span>
+          <button class="btn btn-sm btn-outline-secondary d-lg-none me-1" id="btnSidebar"><i class="ti ti-menu-2"></i></button>
+          <span class="fw-semibold" id="pageTitle">Bảng điều khiển</span>
           <span class="text-muted" id="breadcrumb">/ Dashboard</span>
         </div>
         <div class="d-flex align-items-center gap-2">
-          <div class="input-group input-group-sm" style="width: 260px;">
+          <div class="input-group input-group-sm section-search d-none d-md-flex">
             <span class="input-group-text bg-white"><i class="ti ti-search"></i></span>
-            <input type="search" class="form-control" placeholder="Tìm kiếm nhanh…" />
+            <input type="search" class="form-control" id="sectionSearch" placeholder="Tìm nhanh trong mục đang xem…" />
           </div>
-          <button class="btn btn-sm btn-outline-secondary"><i class="ti ti-bell"></i></button>
+          <button class="btn btn-sm btn-outline-secondary" id="btnTheme" title="Chế độ sáng/tối"><i class="ti ti-sun-moon"></i></button>
           <div class="dropdown">
             <button class="btn btn-sm btn-primary dropdown-toggle" data-bs-toggle="dropdown"><i class="ti ti-user"></i> admin</button>
             <ul class="dropdown-menu dropdown-menu-end">
               <li><h6 class="dropdown-header">Tài khoản</h6></li>
               <li><a class="dropdown-item" href="#settings">Cài đặt</a></li>
               <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item" href="#">Đăng xuất</a></li>
+              <li><a class="dropdown-item" href="logout.php">Đăng xuất</a></li>
             </ul>
           </div>
         </div>
@@ -80,34 +122,24 @@
     </div>
 
     <main class="container-fluid p-3 p-md-4">
+
       <!-- DASHBOARD -->
-      <section id="dashboard" class="section active">
+      <section id="dashboard" class="section active" data-title="Dashboard">
         <div class="row g-3">
-          <div class="col-sm-6 col-xl-3">
-            <div class="card shadow-sm"><div class="card-body">
-              <div class="text-muted small">Tổng ga</div>
-              <div class="display-6" id="statStations">—</div>
-            </div></div>
-          </div>
-          <div class="col-sm-6 col-xl-3">
-            <div class="card shadow-sm"><div class="card-body">
-              <div class="text-muted small">Tổng tàu</div>
-              <div class="display-6" id="statTrains">—</div>
-            </div></div>
-          </div>
-          <div class="col-sm-6 col-xl-3">
-            <div class="card shadow-sm"><div class="card-body">
-              <div class="text-muted small">Lịch trình</div>
-              <div class="display-6" id="statSchedules">—</div>
-            </div></div>
-          </div>
-          <div class="col-sm-6 col-xl-3">
-            <div class="card shadow-sm"><div class="card-body">
-              <div class="text-muted small">Doanh thu (đã thanh toán)</div>
-              <div class="display-6" id="statRevenue">—</div>
-            </div></div>
-          </div>
+          <div class="col-sm-6 col-xl-3"><div class="card shadow-sm"><div class="card-body">
+            <div class="text-muted small">Tổng ga</div><div class="display-6" id="statStations">—</div>
+          </div></div></div>
+          <div class="col-sm-6 col-xl-3"><div class="card shadow-sm"><div class="card-body">
+            <div class="text-muted small">Tổng tàu</div><div class="display-6" id="statTrains">—</div>
+          </div></div></div>
+          <div class="col-sm-6 col-xl-3"><div class="card shadow-sm"><div class="card-body">
+            <div class="text-muted small">Lịch trình</div><div class="display-6" id="statSchedules">—</div>
+          </div></div></div>
+          <div class="col-sm-6 col-xl-3"><div class="card shadow-sm"><div class="card-body">
+            <div class="text-muted small">Doanh thu (đã thanh toán)</div><div class="display-6" id="statRevenue">—</div>
+          </div></div></div>
         </div>
+
         <div class="card mt-4 shadow-sm">
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-2">
@@ -122,6 +154,7 @@
             </div>
           </div>
         </div>
+
         <div class="card mt-4 shadow-sm">
           <div class="card-body">
             <h5 class="mb-3">Doanh thu theo ngày</h5>
@@ -131,55 +164,76 @@
       </section>
 
       <!-- STATIONS -->
-      <section id="stations" class="section">
+      <section id="stations" class="section" data-title="Quản lý Ga">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h3 class="mb-0">Quản lý Ga</h3>
-          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalStation">+ Thêm ga</button>
+          <div class="d-flex gap-2">
+            <input class="form-control form-control-sm" id="filterStations" placeholder="Tìm ga…" />
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalStation">+ Thêm ga</button>
+          </div>
         </div>
         <div class="card shadow-sm"><div class="card-body">
           <div class="table-responsive">
             <table class="table table-striped align-middle" id="tblStations">
-              <thead><tr><th>#</th><th>Mã</th><th>Tên</th><th>Tỉnh/TP</th><th style="width:140px">Thao tác</th></tr></thead>
+              <thead><tr><th>#</th><th>Mã</th><th>Tên</th><th>Tỉnh/TP</th><th style="width:160px">Thao tác</th></tr></thead>
               <tbody></tbody>
             </table>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mt-2">
+            <div class="muted" id="stationsInfo">—</div>
+            <nav><ul class="pagination pagination-sm mb-0" id="stationsPager"></ul></nav>
           </div>
         </div></div>
       </section>
 
       <!-- TRAINS -->
-      <section id="trains" class="section">
+      <section id="trains" class="section" data-title="Quản lý Tàu">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h3 class="mb-0">Quản lý Tàu</h3>
-          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTrain">+ Thêm tàu</button>
+          <div class="d-flex gap-2">
+            <input class="form-control form-control-sm" id="filterTrains" placeholder="Tìm tàu…" />
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTrain">+ Thêm tàu</button>
+          </div>
         </div>
         <div class="card shadow-sm"><div class="card-body">
           <div class="table-responsive">
             <table class="table table-striped align-middle" id="tblTrains">
-              <thead><tr><th>#</th><th>Mã tàu</th><th>Tên tàu</th><th>Sức chứa</th><th style="width:140px">Thao tác</th></tr></thead>
+              <thead><tr><th>#</th><th>Mã tàu</th><th>Tên tàu</th><th>Sức chứa</th><th style="width:160px">Thao tác</th></tr></thead>
               <tbody></tbody>
             </table>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mt-2">
+            <div class="muted" id="trainsInfo">—</div>
+            <nav><ul class="pagination pagination-sm mb-0" id="trainsPager"></ul></nav>
           </div>
         </div></div>
       </section>
 
       <!-- SCHEDULES -->
-      <section id="schedules" class="section">
+      <section id="schedules" class="section" data-title="Quản lý Lịch trình">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h3 class="mb-0">Quản lý Lịch trình</h3>
-          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalSchedule">+ Thêm lịch trình</button>
+          <div class="d-flex gap-2">
+            <input class="form-control form-control-sm" id="filterSchedules" placeholder="Tìm lịch trình…" />
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalSchedule">+ Thêm lịch trình</button>
+          </div>
         </div>
         <div class="card shadow-sm"><div class="card-body">
           <div class="table-responsive">
             <table class="table table-striped align-middle" id="tblSchedules">
-              <thead><tr><th>#</th><th>Tàu</th><th>Ga đi</th><th>Ga đến</th><th>Khởi hành</th><th>Đến nơi</th><th>Giá vé</th><th style="width:160px">Thao tác</th></tr></thead>
+              <thead><tr><th>#</th><th>Tàu</th><th>Ga đi</th><th>Ga đến</th><th>Khởi hành</th><th>Đến nơi</th><th>Giá vé</th><th style="width:180px">Thao tác</th></tr></thead>
               <tbody></tbody>
             </table>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mt-2">
+            <div class="muted" id="schedulesInfo">—</div>
+            <nav><ul class="pagination pagination-sm mb-0" id="schedulesPager"></ul></nav>
           </div>
         </div></div>
       </section>
 
       <!-- MENUS -->
-      <section id="menus" class="section">
+      <section id="menus" class="section" data-title="Quản lý Menu Website">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h3 class="mb-0">Quản lý Menu Website</h3>
           <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalMenu">+ Thêm menu</button>
@@ -187,18 +241,21 @@
         <div class="card shadow-sm"><div class="card-body">
           <div class="table-responsive">
             <table class="table table-striped align-middle" id="tblMenus">
-              <thead><tr><th>#</th><th>Vị trí</th><th>Nhãn</th><th>URL</th><th>Thứ tự</th><th>Hiển thị</th><th style="width:140px">Thao tác</th></tr></thead>
+              <thead><tr><th>#</th><th>Vị trí</th><th>Nhãn</th><th>URL</th><th>Thứ tự</th><th>Hiển thị</th><th style="width:160px">Thao tác</th></tr></thead>
               <tbody></tbody>
             </table>
           </div>
         </div></div>
       </section>
 
-      <!-- BOOKINGS (read-only demo) -->
-      <section id="bookings" class="section">
+      <!-- BOOKINGS -->
+      <section id="bookings" class="section" data-title="Đơn đặt vé">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h3 class="mb-0">Đơn đặt vé</h3>
-          <div></div>
+          <div class="d-flex gap-2">
+            <input class="form-control form-control-sm" id="filterBookings" placeholder="Tìm đơn…" />
+            <button class="btn btn-outline-secondary btn-sm" id="btnExport"><i class="ti ti-download"></i> Xuất CSV</button>
+          </div>
         </div>
         <div class="card shadow-sm"><div class="card-body">
           <div class="table-responsive">
@@ -211,7 +268,7 @@
       </section>
 
       <!-- REPORTS -->
-      <section id="reports" class="section">
+      <section id="reports" class="section" data-title="Báo cáo & Thống kê">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h3 class="mb-0">Báo cáo & Thống kê</h3>
           <form class="d-flex gap-2">
@@ -232,8 +289,8 @@
         </div></div>
       </section>
 
-      <!-- SETTINGS placeholder -->
-      <section id="settings" class="section">
+      <!-- SETTINGS -->
+      <section id="settings" class="section" data-title="Cài đặt">
         <h3 class="mb-3">Cài đặt</h3>
         <div class="card shadow-sm"><div class="card-body">
           <div class="row g-3">
@@ -246,8 +303,9 @@
               <input class="form-control" value="support@example.com" />
             </div>
           </div>
-          <button class="btn btn-success mt-3">Lưu</button>
+          <button class="btn btn-success mt-3" id="btnSaveSettings">Lưu</button>
         </div></div>
+        <div class="muted mt-2">Prototype UI – khi nối backend, các nút sẽ gọi API tương ứng.</div>
       </section>
     </main>
   </div>
@@ -258,9 +316,9 @@
       <div class="modal-header"><h5 class="modal-title">Thêm/Cập nhật Ga</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
         <div class="row g-2">
-          <div class="col-4"><label class="form-label">Mã</label><input id="stCode" class="form-control"></div>
-          <div class="col-8"><label class="form-label">Tên ga</label><input id="stName" class="form-control"></div>
-          <div class="col-12"><label class="form-label">Tỉnh/TP</label><input id="stCity" class="form-control"></div>
+          <div class="col-4"><label class="form-label">Mã</label><input id="stCode" class="form-control" required></div>
+          <div class="col-8"><label class="form-label">Tên ga</label><input id="stName" class="form-control" required></div>
+          <div class="col-12"><label class="form-label">Tỉnh/TP</label><input id="stCity" class="form-control" required></div>
         </div>
       </div>
       <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button><button class="btn btn-primary" id="saveStation">Lưu</button></div>
@@ -272,9 +330,9 @@
       <div class="modal-header"><h5 class="modal-title">Thêm/Cập nhật Tàu</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
         <div class="row g-2">
-          <div class="col-4"><label class="form-label">Mã tàu</label><input id="trCode" class="form-control"></div>
-          <div class="col-8"><label class="form-label">Tên tàu</label><input id="trName" class="form-control"></div>
-          <div class="col-12"><label class="form-label">Sức chứa</label><input id="trCap" type="number" class="form-control" value="100"></div>
+          <div class="col-4"><label class="form-label">Mã tàu</label><input id="trCode" class="form-control" required></div>
+          <div class="col-8"><label class="form-label">Tên tàu</label><input id="trName" class="form-control" required></div>
+          <div class="col-12"><label class="form-label">Sức chứa</label><input id="trCap" type="number" class="form-control" value="100" min="1" required></div>
         </div>
       </div>
       <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button><button class="btn btn-primary" id="saveTrain">Lưu</button></div>
@@ -286,12 +344,12 @@
       <div class="modal-header"><h5 class="modal-title">Thêm/Cập nhật Lịch trình</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
         <div class="row g-2">
-          <div class="col-md-4"><label class="form-label">Tàu</label><select id="scTrain" class="form-select"></select></div>
-          <div class="col-md-4"><label class="form-label">Ga đi</label><select id="scDepart" class="form-select"></select></div>
-          <div class="col-md-4"><label class="form-label">Ga đến</label><select id="scArrive" class="form-select"></select></div>
-          <div class="col-md-6"><label class="form-label">Khởi hành</label><input id="scStart" type="datetime-local" class="form-control"></div>
-          <div class="col-md-6"><label class="form-label">Đến nơi</label><input id="scEnd" type="datetime-local" class="form-control"></div>
-          <div class="col-12"><label class="form-label">Giá vé (đ)</label><input id="scPrice" type="number" class="form-control" value="100000"></div>
+          <div class="col-md-4"><label class="form-label">Tàu</label><select id="scTrain" class="form-select" required></select></div>
+          <div class="col-md-4"><label class="form-label">Ga đi</label><select id="scDepart" class="form-select" required></select></div>
+          <div class="col-md-4"><label class="form-label">Ga đến</label><select id="scArrive" class="form-select" required></select></div>
+          <div class="col-md-6"><label class="form-label">Khởi hành</label><input id="scStart" type="datetime-local" class="form-control" required></div>
+          <div class="col-md-6"><label class="form-label">Đến nơi</label><input id="scEnd" type="datetime-local" class="form-control" required></div>
+          <div class="col-12"><label class="form-label">Giá vé (đ)</label><input id="scPrice" type="number" class="form-control" value="100000" min="0" required></div>
         </div>
       </div>
       <div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button><button class="btn btn-primary" id="saveSchedule">Lưu</button></div>
@@ -304,9 +362,9 @@
       <div class="modal-body">
         <div class="row g-2">
           <div class="col-md-4"><label class="form-label">Vị trí</label><select id="mnLoc" class="form-select"><option value="header">header</option><option value="footer">footer</option></select></div>
-          <div class="col-md-5"><label class="form-label">Nhãn</label><input id="mnLabel" class="form-control" placeholder="Trang chủ"></div>
-          <div class="col-md-3"><label class="form-label">Thứ tự</label><input id="mnPos" type="number" class="form-control" value="0"></div>
-          <div class="col-12"><label class="form-label">URL</label><input id="mnUrl" class="form-control" placeholder="/index.php"></div>
+          <div class="col-md-5"><label class="form-label">Nhãn</label><input id="mnLabel" class="form-control" placeholder="Trang chủ" required></div>
+          <div class="col-md-3"><label class="form-label">Thứ tự</label><input id="mnPos" type="number" class="form-control" value="0" required></div>
+          <div class="col-12"><label class="form-label">URL</label><input id="mnUrl" class="form-control" placeholder="/index.php" required></div>
           <div class="col-12 form-check mt-2"><input id="mnShow" type="checkbox" class="form-check-input" checked><label class="form-check-label" for="mnShow">Hiển thị</label></div>
         </div>
       </div>
@@ -314,48 +372,109 @@
     </div></div>
   </div>
 
+  <!-- Toasts -->
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index:1080">
+    <div id="toast" class="toast align-items-center text-bg-dark border-0" role="alert">
+      <div class="d-flex">
+        <div class="toast-body" id="toastBody">Đã lưu</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // ===== Demo data (in-memory) =====
+    // ====== MODE: 'demo' dùng dữ liệu giả; 'api' gọi backend ======
+    const MODE = 'demo'; // đổi sang 'api' khi đã có /admin/api.php
+
+    const API = {
+      stations: '/admin/api.php?entity=stations',
+      trains:   '/admin/api.php?entity=trains',
+      schedules:'/admin/api.php?entity=schedules',
+      menus:    '/admin/api.php?entity=menus',
+      bookings: '/admin/api.php?entity=bookings',
+      reports:  '/admin/api.php?entity=reports',
+    };
+
+    // ====== Demo data (in-memory) ======
     const db = {
       stations: [
         {id:1, code:'HN', name:'Hà Nội', city:'Hà Nội'},
         {id:2, code:'HP', name:'Hải Phòng', city:'Hải Phòng'},
         {id:3, code:'QN', name:'Quảng Ninh', city:'Quảng Ninh'},
+        {id:4, code:'DN', name:'Đà Nẵng', city:'Đà Nẵng'},
+        {id:5, code:'NT', name:'Nha Trang', city:'Khánh Hòa'},
       ],
       trains: [
-        {id:1, code:'BN_01', name:'Bắc Nam Express', seat:400},
-        {id:2, code:'HP_01', name:'Hải Phòng Line', seat:300}
+        {id:1, code:'SE1', name:'Bắc Nam Express 1', seat:400},
+        {id:2, code:'SE2', name:'Bắc Nam Express 2', seat:420},
+        {id:3, code:'LP5', name:'Hải Phòng Line', seat:300},
       ],
       schedules: [
-        {id:1, train_id:1, depart:1, arrive:2, start:'2025-09-13T09:00', end:'2025-09-13T19:00', price:1200000},
-        {id:2, train_id:2, depart:2, arrive:1, start:'2025-09-11T09:00', end:'2025-09-11T19:00', price:200000}
+        {id:1, train_id:1, depart:1, arrive:2, start:'2025-10-03T08:00', end:'2025-10-03T18:00', price:1200000},
+        {id:2, train_id:2, depart:2, arrive:1, start:'2025-10-05T09:00', end:'2025-10-05T19:00', price:1200000},
+        {id:3, train_id:3, depart:2, arrive:1, start:'2025-10-07T07:30', end:'2025-10-07T10:00', price:180000},
+        {id:4, train_id:1, depart:1, arrive:4, start:'2025-10-09T20:00', end:'2025-10-10T07:30', price:650000},
       ],
       menus: [
         {id:1, location:'header', label:'Trang chủ', url:'/index.php', position:0, visible:true},
-        {id:2, location:'header', label:'Lịch trình', url:'/lich_trinh.php', position:1, visible:true},
+        {id:2, location:'header', label:'Tìm chuyến tàu', url:'/tim_kiem.php', position:1, visible:true},
+        {id:3, location:'footer', label:'Điều khoản', url:'/terms.php', position:0, visible:true},
       ],
       bookings: [
-        {code:'A1B2C3', customer:'Nguyễn Văn A', line:'Hà Nội → TP.HCM', start:'2025-09-12 08:00', qty:2, total:2400000, status:'paid'},
-        {code:'D4E5F6', customer:'Trần Thị B', line:'Hải Phòng → Hà Nội', start:'2025-09-13 09:00', qty:1, total:200000, status:'pending'},
-        {code:'G7H8I9', customer:'Phạm C', line:'Quảng Ninh → Hà Nội', start:'2025-09-14 09:00', qty:3, total:600000, status:'paid'}
+        {code:'A1B2C3', customer:'Nguyễn Văn A', line:'Hà Nội → TP.HCM', start:'2025-10-12 08:00', qty:2, total:2400000, status:'paid'},
+        {code:'D4E5F6', customer:'Trần Thị B', line:'Hải Phòng → Hà Nội', start:'2025-10-13 09:00', qty:1, total:200000, status:'pending'},
+        {code:'G7H8I9', customer:'Phạm C', line:'Quảng Ninh → Hà Nội', start:'2025-10-14 09:00', qty:3, total:600000, status:'paid'}
       ]
     };
 
-    // ===== Helpers =====
-    const $ = sel => document.querySelector(sel);
+    // ====== Helpers ======
+    const $  = sel => document.querySelector(sel);
     const $$ = sel => Array.from(document.querySelectorAll(sel));
+    const toast = new bootstrap.Toast($('#toast'));
 
-    function setBreadcrumb(text){ $('#breadcrumb').textContent = '/ ' + text; }
+    function showToast(msg, variant='dark'){
+      const t = $('#toast');
+      t.className = `toast align-items-center text-bg-${variant} border-0`;
+      $('#toastBody').textContent = msg;
+      toast.show();
+    }
     function fmtMoney(n){ return (n||0).toLocaleString('vi-VN') + ' đ'; }
+    function setBreadcrumb(text){ $('#breadcrumb').textContent = '/ ' + text; $('#pageTitle').textContent = text; }
+    function confirmDelete(){ return confirm('Bạn chắc chắn muốn xoá?'); }
 
-    // ===== Navigation
+    // ====== Theme auto + toggle ======
+    const mqDark = window.matchMedia('(prefers-color-scheme: dark)');
+    const root   = document.documentElement;
+    function applyTheme() {
+      const pref = localStorage.getItem('theme') || 'auto';
+      root.setAttribute('data-theme', pref==='auto' ? (mqDark.matches?'dark':'light') : pref);
+    }
+    applyTheme(); mqDark.addEventListener('change', applyTheme);
+    $('#btnTheme').addEventListener('click', () => {
+      const current = localStorage.getItem('theme') || 'auto';
+      const next = current==='auto' ? 'dark' : current==='dark' ? 'light' : 'auto';
+      localStorage.setItem('theme', next); applyTheme();
+      showToast('Chế độ: ' + next.toUpperCase(), 'primary');
+    });
+
+    // ====== Sidebar collapse ======
+    const sidebar = $('#sidebar'), content = $('#content');
+    $('#btnCollapse').addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed'); content.classList.toggle('collapsed');
+    });
+    $('#btnSidebar').addEventListener('click', () => {
+      sidebar.classList.toggle('d-none');
+    });
+
+    // ====== Navigation routing ======
     function showSection(id){
       $$('.section').forEach(s=>s.classList.remove('active'));
-      const el = document.getElementById(id);
-      if(el) el.classList.add('active');
+      const el = document.getElementById(id) || document.getElementById('dashboard');
+      el.classList.add('active');
       $$('#nav a').forEach(a=>a.classList.toggle('active', a.getAttribute('href') === '#'+id));
-      setBreadcrumb(el ? el.querySelector('h3, h5, .display-6')?.textContent || id : id);
+      setBreadcrumb(el.dataset.title || id);
+
       if(id==='dashboard'){ renderDashboard(); }
       if(id==='stations'){ renderStations(); }
       if(id==='trains'){ renderTrains(); }
@@ -364,103 +483,251 @@
       if(id==='bookings'){ renderBookings(); }
       if(id==='reports'){ renderReports(); }
     }
-
     window.addEventListener('hashchange', ()=>showSection(location.hash.slice(1)||'dashboard'));
-    $$('#nav a').forEach(a=>a.addEventListener('click', e=>{ showSection(a.getAttribute('href').slice(1)); }));
-    $$('[data-open]')?.forEach(btn=>btn.addEventListener('click', ()=> showSection(btn.getAttribute('data-open').slice(1)) ));
+    $('#nav').addEventListener('click', e=>{
+      const a = e.target.closest('a[href^="#"]'); if(!a) return;
+      e.preventDefault(); const id=a.getAttribute('href').slice(1); history.pushState(null,'','#'+id); showSection(id);
+    });
+    $$('[data-open]').forEach(btn=>btn.addEventListener('click', ()=> {
+      const id = btn.getAttribute('data-open').replace('#','');
+      history.pushState(null,'','#'+id); showSection(id);
+    }));
 
-    // ===== Renderers
+    // ====== Section search (filter in-place) ======
+    $('#sectionSearch').addEventListener('input', ()=>{
+      const q = $('#sectionSearch').value.trim().toLowerCase();
+      const active = document.querySelector('.section.active');
+      const rows = active?.querySelectorAll('tbody tr')||[];
+      rows.forEach(tr=>{
+        const hit = tr.innerText.toLowerCase().includes(q);
+        tr.style.display = hit ? '' : 'none';
+      });
+    });
+
+    // ====== Renderers ======
     function renderDashboard(){
-      $('#statStations').textContent = db.stations.length;
-      $('#statTrains').textContent   = db.trains.length;
-      $('#statSchedules').textContent= db.schedules.length;
+      $('#statStations').textContent  = db.stations.length;
+      $('#statTrains').textContent    = db.trains.length;
+      $('#statSchedules').textContent = db.schedules.length;
       const revenue = db.bookings.filter(b=>b.status==='paid').reduce((s,b)=>s+b.total,0);
-      $('#statRevenue').textContent  = fmtMoney(revenue);
+      $('#statRevenue').textContent   = fmtMoney(revenue);
 
-      // recent orders
       const tb = $('#recentOrders tbody'); tb.innerHTML='';
-      db.bookings.slice(-5).reverse().forEach(b=>{
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td><code>${b.code}</code></td><td>${b.customer}</td><td>${b.start}</td><td><span class="badge ${b.status==='paid'?'bg-success':(b.status==='pending'?'bg-warning':'bg-secondary')}">${b.status}</span></td><td>${fmtMoney(b.total)}</td>`;
-        tb.appendChild(tr);
-      });
-
-      // chart
-      const ctx = document.getElementById('chartRevenue');
-      const days = 7; const labels = []; const data = [];
-      for(let i=days-1;i>=0;i--){
-        const d = new Date(); d.setDate(d.getDate()-i);
-        const s = d.toISOString().slice(0,10);
-        labels.push(s);
-        const value = db.bookings.filter(b=>b.status==='paid').reduce((sum,b)=> sum + (Math.random() < .4 ? b.total*(Math.random()*0.3+0.2) : 0), 0);
-        data.push(Math.round(value));
+      const items = db.bookings.slice(-5).reverse();
+      if (!items.length) {
+        tb.innerHTML = `<tr><td colspan="5" class="text-center text-muted">Chưa có đơn</td></tr>`;
+      } else {
+        items.forEach(b=>{
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td><code>${b.code}</code></td>
+            <td>${b.customer}</td>
+            <td>${b.start}</td>
+            <td><span class="badge ${b.status==='paid'?'bg-success':(b.status==='pending'?'bg-warning':'bg-secondary')}">${b.status}</span></td>
+            <td>${fmtMoney(b.total)}</td>`;
+          tb.appendChild(tr);
+        });
       }
-      new Chart(ctx,{type:'line', data:{labels, datasets:[{label:'Revenue (demo)', data, tension:.25}]}, options:{responsive:true, scales:{y:{beginAtZero:true}}}});
+
+      const ctx = document.getElementById('chartRevenue');
+      new Chart(ctx,{type:'line', data:{
+        labels: Array.from({length:7},(_,i)=>{const d=new Date(); d.setDate(d.getDate()-6+i); return d.toISOString().slice(0,10)}),
+        datasets:[{label:'Revenue (demo)', data:Array.from({length:7},()=>Math.round(Math.random()*2_000_000)), tension:.25}]
+      }, options:{responsive:true, scales:{y:{beginAtZero:true}}}});
     }
 
-    function renderStations(){
+    // Pagination helper
+    function paginate(arr, page=1, per=8){ const total=arr.length, pages=Math.max(1,Math.ceil(total/per)); const start=(page-1)*per; return {items:arr.slice(start,start+per), pages, total}; }
+    function renderPager(el, pages, page, onGo){
+      el.innerHTML=''; for(let i=1;i<=pages;i++){ const li=document.createElement('li'); li.className='page-item'+(i===page?' active':''); li.innerHTML=`<a class="page-link" href="#">${i}</a>`; li.onclick=(e)=>{e.preventDefault(); onGo(i)}; el.appendChild(li); }
+    }
+
+    // STATIONS
+    function renderStations(page=1){
+      const q = ($('#filterStations').value||'').toLowerCase();
+      const list = db.stations.filter(s=> (s.name+s.city+s.code).toLowerCase().includes(q));
+      const {items, pages, total} = paginate(list, page);
       const tb = $('#tblStations tbody'); tb.innerHTML='';
-      db.stations.forEach((s,i)=>{
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${i+1}</td><td>${s.code}</td><td>${s.name}</td><td>${s.city}</td>
-          <td><button class='btn btn-sm btn-outline-primary me-1' onclick='editStation(${s.id})'>Sửa</button>
-              <button class='btn btn-sm btn-outline-danger' onclick='delStation(${s.id})'>Xoá</button></td>`;
+      if(!items.length){ tb.innerHTML=`<tr><td colspan="5" class="text-center text-muted">Không có dữ liệu</td></tr>`; }
+      items.forEach((s,i)=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML = `
+          <td>${(page-1)*8 + i + 1}</td>
+          <td>${s.code}</td>
+          <td>${s.name}</td>
+          <td>${s.city}</td>
+          <td>
+            <button class="btn btn-sm btn-outline-primary me-1" data-edit-station="${s.id}">Sửa</button>
+            <button class="btn btn-sm btn-outline-danger" data-del-station="${s.id}">Xoá</button>
+          </td>`;
         tb.appendChild(tr);
       });
+      $('#stationsInfo').textContent = `Hiển thị ${items.length}/${total} bản ghi`;
+      renderPager($('#stationsPager'), pages, page, i=>renderStations(i));
     }
+    // event handlers
+    $('#filterStations').addEventListener('input', ()=>renderStations(1));
+    $('#tblStations').addEventListener('click', (e)=>{
+      const btnE = e.target.closest('[data-edit-station]'); const btnD = e.target.closest('[data-del-station]');
+      if(btnE){ const id=+btnE.dataset.editStation; const s=db.stations.find(x=>x.id===id); $('#stCode').value=s.code; $('#stName').value=s.name; $('#stCity').value=s.city; $('#saveStation').dataset.id=id; new bootstrap.Modal('#modalStation').show(); }
+      if(btnD){ const id=+btnD.dataset.delStation; if(confirmDelete()){ db.stations = db.stations.filter(x=>x.id!==id); renderStations(); showToast('Đã xoá ga','danger'); } }
+    });
+    $('#saveStation').addEventListener('click', ()=>{
+      const code=$('#stCode').value.trim(), name=$('#stName').value.trim(), city=$('#stCity').value.trim(); if(!code||!name||!city){ showToast('Vui lòng nhập đủ thông tin','warning'); return; }
+      const id = +($('#saveStation').dataset.id||0);
+      if(id){ Object.assign(db.stations.find(x=>x.id===id),{code,name,city}); showToast('Đã cập nhật ga','success'); }
+      else { db.stations.push({id:Date.now(), code,name,city}); showToast('Đã thêm ga','success'); }
+      delete $('#saveStation').dataset.id; bootstrap.Modal.getInstance($('#modalStation')).hide(); renderStations();
+    });
 
-    function renderTrains(){
-      const tb = $('#tblTrains tbody'); tb.innerHTML='';
-      db.trains.forEach((t,i)=>{
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${i+1}</td><td>${t.code}</td><td>${t.name}</td><td>${t.seat}</td>
-          <td><button class='btn btn-sm btn-outline-primary me-1' onclick='editTrain(${t.id})'>Sửa</button>
-              <button class='btn btn-sm btn-outline-danger' onclick='delTrain(${t.id})'>Xoá</button></td>`;
+    // TRAINS
+    function renderTrains(page=1){
+      const q = ($('#filterTrains').value||'').toLowerCase();
+      const list = db.trains.filter(t=> (t.name+t.code+(t.seat||'')).toLowerCase().includes(q));
+      const {items, pages, total} = paginate(list, page);
+      const tb=$('#tblTrains tbody'); tb.innerHTML='';
+      if(!items.length){ tb.innerHTML=`<tr><td colspan="5" class="text-center text-muted">Không có dữ liệu</td></tr>`; }
+      items.forEach((t,i)=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML = `
+          <td>${(page-1)*8+i+1}</td>
+          <td>${t.code}</td><td>${t.name}</td><td>${t.seat}</td>
+          <td>
+            <button class="btn btn-sm btn-outline-primary me-1" data-edit-train="${t.id}">Sửa</button>
+            <button class="btn btn-sm btn-outline-danger" data-del-train="${t.id}">Xoá</button>
+          </td>`;
         tb.appendChild(tr);
       });
+      $('#trainsInfo').textContent = `Hiển thị ${items.length}/${total} bản ghi`;
+      renderPager($('#trainsPager'), pages, page, i=>renderTrains(i));
     }
+    $('#filterTrains').addEventListener('input', ()=>renderTrains(1));
+    $('#tblTrains').addEventListener('click', (e)=>{
+      const btnE=e.target.closest('[data-edit-train]'); const btnD=e.target.closest('[data-del-train]');
+      if(btnE){ const id=+btnE.dataset.editTrain; const t=db.trains.find(x=>x.id===id); $('#trCode').value=t.code; $('#trName').value=t.name; $('#trCap').value=t.seat; $('#saveTrain').dataset.id=id; new bootstrap.Modal('#modalTrain').show(); }
+      if(btnD){ const id=+btnD.dataset.delTrain; if(confirmDelete()){ db.trains=db.trains.filter(x=>x.id!==id); renderTrains(); showToast('Đã xoá tàu','danger'); } }
+    });
+    $('#saveTrain').addEventListener('click', ()=>{
+      const code=$('#trCode').value.trim(), name=$('#trName').value.trim(), seat=+$('#trCap').value||0; if(!code||!name||seat<=0){ showToast('Thông tin không hợp lệ','warning'); return; }
+      const id=+($('#saveTrain').dataset.id||0);
+      if(id){ Object.assign(db.trains.find(x=>x.id===id),{code,name,seat}); showToast('Đã cập nhật tàu','success'); }
+      else { db.trains.push({id:Date.now(), code,name,seat}); showToast('Đã thêm tàu','success'); }
+      delete $('#saveTrain').dataset.id; bootstrap.Modal.getInstance($('#modalTrain')).hide(); renderTrains();
+    });
 
-    function renderSchedules(){
-      const tb = $('#tblSchedules tbody'); tb.innerHTML='';
-      db.schedules.forEach((sc,i)=>{
-        const train = db.trains.find(t=>t.id===sc.train_id)?.name||'';
-        const dname = db.stations.find(s=>s.id===sc.depart)?.name||'';
-        const aname = db.stations.find(s=>s.id===sc.arrive)?.name||'';
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${i+1}</td><td>${train}</td><td>${dname}</td><td>${aname}</td>
-          <td>${sc.start.replace('T',' ')}</td><td>${sc.end.replace('T',' ')}</td><td>${fmtMoney(sc.price)}</td>
-          <td><button class='btn btn-sm btn-outline-primary me-1' onclick='editSchedule(${sc.id})'>Sửa</button>
-              <button class='btn btn-sm btn-outline-danger' onclick='delSchedule(${sc.id})'>Xoá</button></td>`;
-        tb.appendChild(tr);
-      });
-      // fill selects for modal
-      const opts = x=> x.map(v=>`<option value='${v.id}'>${v.name}</option>`).join('');
-      $('#scTrain').innerHTML = opts(db.trains);
+    // SCHEDULES
+    function fillScheduleSelects(){
+      const opts = arr => arr.map(v=>`<option value='${v.id}'>${v.name}</option>`).join('');
+      $('#scTrain').innerHTML  = opts(db.trains);
       $('#scDepart').innerHTML = opts(db.stations);
       $('#scArrive').innerHTML = opts(db.stations);
     }
+    function renderSchedules(page=1){
+      fillScheduleSelects();
+      const q = ($('#filterSchedules').value||'').toLowerCase();
+      const mapTrain = id => db.trains.find(t=>t.id===id)?.name||'';
+      const mapSt = id => db.stations.find(s=>s.id===id)?.name||'';
+      const list = db.schedules.filter(sc => (mapTrain(sc.train_id)+mapSt(sc.depart)+mapSt(sc.arrive)+sc.start+sc.end).toLowerCase().includes(q));
+      const {items, pages, total} = paginate(list, page);
+      const tb=$('#tblSchedules tbody'); tb.innerHTML='';
+      if(!items.length){ tb.innerHTML=`<tr><td colspan="8" class="text-center text-muted">Không có dữ liệu</td></tr>`; }
+      items.forEach((sc,i)=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML = `
+          <td>${(page-1)*8+i+1}</td>
+          <td>${mapTrain(sc.train_id)}</td>
+          <td>${mapSt(sc.depart)}</td>
+          <td>${mapSt(sc.arrive)}</td>
+          <td>${sc.start.replace('T',' ')}</td>
+          <td>${sc.end.replace('T',' ')}</td>
+          <td>${fmtMoney(sc.price)}</td>
+          <td>
+            <button class="btn btn-sm btn-outline-primary me-1" data-edit-schedule="${sc.id}">Sửa</button>
+            <button class="btn btn-sm btn-outline-danger" data-del-schedule="${sc.id}">Xoá</button>
+          </td>`;
+        tb.appendChild(tr);
+      });
+      $('#schedulesInfo').textContent = `Hiển thị ${items.length}/${total} bản ghi`;
+      renderPager($('#schedulesPager'), pages, page, i=>renderSchedules(i));
+    }
+    $('#filterSchedules').addEventListener('input', ()=>renderSchedules(1));
+    $('#tblSchedules').addEventListener('click', (e)=>{
+      const btnE=e.target.closest('[data-edit-schedule]'); const btnD=e.target.closest('[data-del-schedule]');
+      if(btnE){ const id=+btnE.dataset.editSchedule; const sc=db.schedules.find(x=>x.id===id); $('#scTrain').value=sc.train_id; $('#scDepart').value=sc.depart; $('#scArrive').value=sc.arrive; $('#scStart').value=sc.start; $('#scEnd').value=sc.end; $('#scPrice').value=sc.price; $('#saveSchedule').dataset.id=id; new bootstrap.Modal('#modalSchedule').show(); }
+      if(btnD){ const id=+btnD.dataset.delSchedule; if(confirmDelete()){ db.schedules=db.schedules.filter(x=>x.id!==id); renderSchedules(); showToast('Đã xoá lịch trình','danger'); } }
+    });
+    $('#saveSchedule').addEventListener('click', ()=>{
+      const train=+$('#scTrain').value, depart=+$('#scDepart').value, arrive=+$('#scArrive').value, start=$('#scStart').value, end=$('#scEnd').value, price=+$('#scPrice').value||0;
+      if(!train||!depart||!arrive||!start||!end||price<0){ showToast('Thông tin không hợp lệ','warning'); return; }
+      const id=+($('#saveSchedule').dataset.id||0);
+      if(id){ Object.assign(db.schedules.find(x=>x.id===id),{train_id:train,depart,arrive,start,end,price}); showToast('Đã cập nhật lịch trình','success'); }
+      else { db.schedules.push({id:Date.now(), train_id:train, depart,arrive,start,end,price}); showToast('Đã thêm lịch trình','success'); }
+      delete $('#saveSchedule').dataset.id; bootstrap.Modal.getInstance($('#modalSchedule')).hide(); renderSchedules();
+    });
 
+    // MENUS
     function renderMenus(){
-      const tb = $('#tblMenus tbody'); tb.innerHTML='';
-      db.menus.forEach((m,i)=>{
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${i+1}</td><td>${m.location}</td><td>${m.label}</td><td><code>${m.url}</code></td><td>${m.position}</td><td>${m.visible?'✅':'🚫'}</td>
-          <td><button class='btn btn-sm btn-outline-primary me-1' onclick='editMenu(${m.id})'>Sửa</button>
-              <button class='btn btn-sm btn-outline-danger' onclick='delMenu(${m.id})'>Xoá</button></td>`;
+      const tb=$('#tblMenus tbody'); tb.innerHTML='';
+      if(!db.menus.length){ tb.innerHTML=`<tr><td colspan="7" class="text-center text-muted">Chưa có menu</td></tr>`; }
+      db.menus.sort((a,b)=>a.position-b.position).forEach((m,i)=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML = `
+          <td>${i+1}</td>
+          <td><span class="badge badge-soft rounded-pill">${m.location}</span></td>
+          <td>${m.label}</td>
+          <td><code>${m.url}</code></td>
+          <td>${m.position}</td>
+          <td>${m.visible?'✅':'🚫'}</td>
+          <td>
+            <button class="btn btn-sm btn-outline-primary me-1" data-edit-menu="${m.id}">Sửa</button>
+            <button class="btn btn-sm btn-outline-danger" data-del-menu="${m.id}">Xoá</button>
+          </td>`;
         tb.appendChild(tr);
       });
     }
+    $('#tblMenus').addEventListener('click', (e)=>{
+      const btnE=e.target.closest('[data-edit-menu]'); const btnD=e.target.closest('[data-del-menu]');
+      if(btnE){ const id=+btnE.dataset.editMenu; const m=db.menus.find(x=>x.id===id); $('#mnLoc').value=m.location; $('#mnLabel').value=m.label; $('#mnUrl').value=m.url; $('#mnPos').value=m.position; $('#mnShow').checked=m.visible; $('#saveMenu').dataset.id=id; new bootstrap.Modal('#modalMenu').show(); }
+      if(btnD){ const id=+btnD.dataset.delMenu; if(confirmDelete()){ db.menus=db.menus.filter(x=>x.id!==id); renderMenus(); showToast('Đã xoá menu','danger'); } }
+    });
+    $('#saveMenu').addEventListener('click', ()=>{
+      const location=$('#mnLoc').value, label=$('#mnLabel').value.trim(), url=$('#mnUrl').value.trim(), position=+$('#mnPos').value||0, visible=$('#mnShow').checked;
+      if(!label||!url){ showToast('Vui lòng nhập nhãn & URL','warning'); return; }
+      const id=+($('#saveMenu').dataset.id||0);
+      if(id){ Object.assign(db.menus.find(x=>x.id===id),{location,label,url,position,visible}); showToast('Đã cập nhật menu','success'); }
+      else { db.menus.push({id:Date.now(), location,label,url,position,visible}); showToast('Đã thêm menu','success'); }
+      delete $('#saveMenu').dataset.id; bootstrap.Modal.getInstance($('#modalMenu')).hide(); renderMenus();
+    });
 
+    // BOOKINGS
     function renderBookings(){
-      const tb = $('#tblBookings tbody'); tb.innerHTML='';
-      db.bookings.forEach(b=>{
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td><code>${b.code}</code></td><td>${b.customer}</td><td>${b.line}</td><td>${b.start}</td><td>${b.qty}</td><td>${fmtMoney(b.total)}</td>
-          <td><span class='badge ${b.status==='paid'?'bg-success':(b.status==='pending'?'bg-warning':'bg-secondary')}'>${b.status}</span></td>`;
+      const q = ($('#filterBookings').value||'').toLowerCase();
+      const tb=$('#tblBookings tbody'); tb.innerHTML='';
+      const rows = db.bookings.filter(b => (b.code+b.customer+b.line+b.start+b.status).toLowerCase().includes(q));
+      if(!rows.length){ tb.innerHTML=`<tr><td colspan="7" class="text-center text-muted">Không có đơn</td></tr>`; return; }
+      rows.forEach(b=>{
+        const tr=document.createElement('tr');
+        tr.innerHTML = `
+          <td><code>${b.code}</code></td>
+          <td>${b.customer}</td>
+          <td>${b.line}</td>
+          <td>${b.start}</td>
+          <td>${b.qty}</td>
+          <td>${fmtMoney(b.total)}</td>
+          <td><span class="badge ${b.status==='paid'?'bg-success':(b.status==='pending'?'bg-warning':'bg-secondary')}">${b.status}</span></td>`;
         tb.appendChild(tr);
       });
     }
+    $('#filterBookings').addEventListener('input', renderBookings);
+    $('#btnExport').addEventListener('click', ()=>{
+      const header=['code','customer','line','start','qty','total','status'];
+      const rows = db.bookings.map(b=> [b.code,b.customer,b.line,b.start,b.qty,b.total,b.status].join(','));
+      const csv = [header.join(','), ...rows].join('\n');
+      const blob = new Blob([csv],{type:'text/csv;charset=utf-8;'}); const url=URL.createObjectURL(blob);
+      const a=document.createElement('a'); a.href=url; a.download='bookings.csv'; a.click(); URL.revokeObjectURL(url);
+    });
 
+    // REPORTS
     function renderReports(){
       const from = new Date(); from.setDate(from.getDate()-6);
       $('#fromDate').value = from.toISOString().slice(0,10);
@@ -468,37 +735,23 @@
 
       const revenue = db.bookings.filter(b=>b.status==='paid').reduce((s,b)=>s+b.total,0);
       const orders = db.bookings.length;
-      const paid = db.bookings.filter(b=>b.status==='paid').length;
+      const paid   = db.bookings.filter(b=>b.status==='paid').length;
       const canceled = db.bookings.filter(b=>b.status==='canceled').length;
       $('#rpRevenue').textContent = fmtMoney(revenue);
-      $('#rpOrders').textContent = orders; $('#rpPaid').textContent = paid; $('#rpCanceled').textContent = canceled;
+      $('#rpOrders').textContent  = orders;
+      $('#rpPaid').textContent    = paid;
+      $('#rpCanceled').textContent= canceled;
 
       const ctx = document.getElementById('chartReport');
       const labels = Array.from({length:7}).map((_,i)=>{ const d=new Date(); d.setDate(d.getDate()-6+i); return d.toISOString().slice(0,10); });
-      const data = labels.map(()=> Math.round(Math.random()*2_000_000));
+      const data   = labels.map(()=> Math.round(Math.random()*2_000_000));
       new Chart(ctx,{type:'bar', data:{labels, datasets:[{label:'Revenue (demo)', data}]}, options:{responsive:true, scales:{y:{beginAtZero:true}}}});
 
-      $('#btnFilter').onclick = ()=> alert('Đây là prototype UI (chưa nối DB). Khi tích hợp backend, nút này sẽ gửi query theo khoảng ngày để tính lại số liệu.');
+      $('#btnFilter').onclick = ()=> showToast('Prototype: khi nối backend, bộ lọc sẽ gửi khoảng ngày lên API để tính lại','primary');
     }
 
-    // ===== CRUD (demo only; mutate in-memory arrays)
-    function editStation(id){ const s=db.stations.find(x=>x.id===id); $('#stCode').value=s.code; $('#stName').value=s.name; $('#stCity').value=s.city; $('#saveStation').onclick=()=>{s.code=$('#stCode').value;s.name=$('#stName').value;s.city=$('#stCity').value;renderStations();bootstrap.Modal.getInstance($('#modalStation')).hide();}; new bootstrap.Modal($('#modalStation')).show(); }
-    function delStation(id){ db.stations = db.stations.filter(s=>s.id!==id); renderStations(); }
-    $('#saveStation').onclick = ()=>{ const s={id:Date.now(), code:$('#stCode').value, name:$('#stName').value, city:$('#stCity').value}; db.stations.push(s); renderStations(); bootstrap.Modal.getInstance($('#modalStation')).hide(); };
-
-    function editTrain(id){ const t=db.trains.find(x=>x.id===id); $('#trCode').value=t.code; $('#trName').value=t.name; $('#trCap').value=t.seat; $('#saveTrain').onclick=()=>{t.code=$('#trCode').value;t.name=$('#trName').value;t.seat=+$('#trCap').value;renderTrains();bootstrap.Modal.getInstance($('#modalTrain')).hide();}; new bootstrap.Modal($('#modalTrain')).show(); }
-    function delTrain(id){ db.trains = db.trains.filter(t=>t.id!==id); renderTrains(); }
-    $('#saveTrain').onclick = ()=>{ const t={id:Date.now(), code:$('#trCode').value, name:$('#trName').value, seat:+$('#trCap').value}; db.trains.push(t); renderTrains(); bootstrap.Modal.getInstance($('#modalTrain')).hide(); };
-
-    function editSchedule(id){ const sc=db.schedules.find(x=>x.id===id); $('#scTrain').value=sc.train_id; $('#scDepart').value=sc.depart; $('#scArrive').value=sc.arrive; $('#scStart').value=sc.start; $('#scEnd').value=sc.end; $('#scPrice').value=sc.price; $('#saveSchedule').onclick=()=>{Object.assign(sc,{train_id:+$('#scTrain').value, depart:+$('#scDepart').value, arrive:+$('#scArrive').value, start:$('#scStart').value, end:$('#scEnd').value, price:+$('#scPrice').value}); renderSchedules(); bootstrap.Modal.getInstance($('#modalSchedule')).hide();}; new bootstrap.Modal($('#modalSchedule')).show(); }
-    function delSchedule(id){ db.schedules = db.schedules.filter(s=>s.id!==id); renderSchedules(); }
-    $('#saveSchedule').onclick = ()=>{ const sc={id:Date.now(), train_id:+$('#scTrain').value, depart:+$('#scDepart').value, arrive:+$('#scArrive').value, start:$('#scStart').value, end:$('#scEnd').value, price:+$('#scPrice').value}; db.schedules.push(sc); renderSchedules(); bootstrap.Modal.getInstance($('#modalSchedule')).hide(); };
-
-    function editMenu(id){ const m=db.menus.find(x=>x.id===id); $('#mnLoc').value=m.location; $('#mnLabel').value=m.label; $('#mnUrl').value=m.url; $('#mnPos').value=m.position; $('#mnShow').checked=m.visible; $('#saveMenu').onclick=()=>{Object.assign(m,{location:$('#mnLoc').value,label:$('#mnLabel').value,url:$('#mnUrl').value,position:+$('#mnPos').value,visible:$('#mnShow').checked}); renderMenus(); bootstrap.Modal.getInstance($('#modalMenu')).hide();}; new bootstrap.Modal($('#modalMenu')).show(); }
-    function delMenu(id){ db.menus = db.menus.filter(m=>m.id!==id); renderMenus(); }
-    $('#saveMenu').onclick = ()=>{ const m={id:Date.now(), location:$('#mnLoc').value, label:$('#mnLabel').value, url:$('#mnUrl').value, position:+$('#mnPos').value, visible:$('#mnShow').checked}; db.menus.push(m); renderMenus(); bootstrap.Modal.getInstance($('#modalMenu')).hide(); };
-
-    // init
+    // ===== INIT =====
+    renderDashboard(); // initial
     showSection(location.hash.slice(1)||'dashboard');
   </script>
 </body>
