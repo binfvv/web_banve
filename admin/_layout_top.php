@@ -25,19 +25,19 @@
   <aside class="sidebar">
     <div class="brand d-flex align-items-center gap-2"><i class="ti ti-train"></i> VNR Admin</div>
     <nav class="mt-1">
-      <a href="/admin/index.php" class="<?= ($active ?? '')==='dashboard'?'active':'' ?>"><i class="ti ti-layout-dashboard"></i>Dashboard</a>
+      <a href="/web_banve/admin/index.php" class="<?= ($active ?? '')==='dashboard'?'active':'' ?>"><i class="ti ti-layout-dashboard"></i>Dashboard</a>
       <div class="small text-white-50 px-2 mt-3 mb-1">Dữ liệu</div>
-      <a href="/admin/users.php" class="<?= ($active ?? '')==='users'?'active':'' ?>"><i class="ti ti-users"></i>Người dùng</a>
-      <a href="/admin/chuyen_tau.php" class="<?= ($active ?? '')==='chuyen'?'active':'' ?>"><i class="ti ti-calendar-time"></i>Chuyến tàu</a>
-      <a href="/admin/toa_tau.php" class="<?= ($active ?? '')==='toa'?'active':'' ?>"><i class="ti ti-building-rail"></i>Toa & Ghế</a>
-      <a href="/admin/thanh_toan.php" class="<?= ($active ?? '')==='pay'?'active':'' ?>"><i class="ti ti-credit-card"></i>Thanh toán</a>
-      <a href="/admin/ve_da_dat.php" class="<?= ($active ?? '')==='tickets'?'active':'' ?>"><i class="ti ti-ticket"></i>Vé đã đặt</a>
+      <a href="/web_banve/admin/users.php" class="<?= ($active ?? '')==='users'?'active':'' ?>"><i class="ti ti-users"></i>Người dùng</a>
+      <a href="/web_banve/admin/chuyen_tau.php" class="<?= ($active ?? '')==='chuyen'?'active':'' ?>"><i class="ti ti-calendar-time"></i>Chuyến tàu</a>
+      <a href="/web_banve/admin/toa_tau.php" class="<?= ($active ?? '')==='toa'?'active':'' ?>"><i class="ti ti-building-rail"></i>Toa & Ghế</a>
+      <a href="/web_banve/admin/thanh_toan.php" class="<?= ($active ?? '')==='pay'?'active':'' ?>"><i class="ti ti-credit-card"></i>Thanh toán</a>
+      <a href="/web_banve/admin/ve_da_dat.php" class="<?= ($active ?? '')==='tickets'?'active':'' ?>"><i class="ti ti-ticket"></i>Vé đã đặt</a>
       <div class="small text-white-50 px-2 mt-3 mb-1">Nội dung</div>
-      <a href="/admin/menus.php" class="<?= ($active ?? '')==='menus'?'active':'' ?>"><i class="ti ti-list-details"></i>Menu website</a>
-      <a href="/admin/settings.php" class="<?= ($active ?? '')==='settings'?'active':'' ?>"><i class="ti ti-settings"></i>Cài đặt</a>
+      <a href="/web_banve/admin/menus.php" class="<?= ($active ?? '')==='menus'?'active':'' ?>"><i class="ti ti-list-details"></i>Menu website</a>
+      <a href="/web_banve/admin/settings.php" class="<?= ($active ?? '')==='settings'?'active':'' ?>"><i class="ti ti-settings"></i>Cài đặt</a>
       <div class="small text-white-50 px-2 mt-3 mb-1">Khác</div>
       <a href="/"><i class="ti ti-home"></i>Trang người dùng</a>
-      <a href="/logout.php"><i class="ti ti-logout"></i>Đăng xuất</a>
+      <a href="/web_banve/logout.php"><i class="ti ti-logout"></i>Đăng xuất</a>
     </nav>
   </aside>
 

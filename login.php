@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     // Điều hướng theo quyền
                     if ($user['role'] === 'admin') {
-                        header('Location: /web_banve/admin/admin.html'); // hoặc admin/index.php
+                        header('Location: /web_banve/admin/index.php'); // hoặc admin/index.php
                     } else {
                         header('Location: /web_banve/');
                     }

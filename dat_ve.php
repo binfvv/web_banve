@@ -1,7 +1,26 @@
 <?php
-// dat_ve.php — Coach tabs + seat grid + price per seat (PDO, all named params)
+// dat_ve.php — Chọn ghế tàu hỏa (Horizontal Layout)
 if (session_status() === PHP_SESSION_NONE) session_start();
-require_once __DIR__ . '/includes/db.php'; // phải tạo $pdo (PDO)
+
+// --- 1. SỬA LỖI ĐƯỜNG DẪN DB ---
+// Tự động tìm file db.php ở các vị trí phổ biến
+$db_paths = [
+    __DIR__ . '/assets/includes/db.php',
+    __DIR__ . '/includes/db.php',
+    __DIR__ . '/db.php'
+];
+$db_found = false;
+foreach ($db_paths as $path) {
+    if (file_exists($path)) {
+        require_once $path;
+        $db_found = true;
+        break;
+    }
+}
+if (!$db_found) {
+    die("<h1>Lỗi cấu hình:</h1> Không tìm thấy file <code>db.php</code>. Vui lòng kiểm tra lại cấu trúc thư mục.");
+}
+// -------------------------------
 
 // ===== Helpers =====
 function h($s){ return htmlspecialchars($s ?? '', ENT_QUOTES, 'UTF-8'); }
@@ -55,7 +74,7 @@ if ($train_id > 0) {
   $trip = $stm->fetch(PDO::FETCH_ASSOC);
 
   if ($trip) {
-    // Danh sách toa (CHỈ DÙNG NAMED PARAMS)
+    // Danh sách toa
     $coachesStmt = $pdo->prepare("
       SELECT t.id, t.ten_toa, t.loai_toa, t.thu_tu,
              COALESCE(t.gia_tu, MIN(COALESCE(g.gia, :gve_low)))  AS gia_tu,
@@ -74,19 +93,17 @@ if ($train_id > 0) {
     ]);
     $coaches = $coachesStmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Toa đang chọn (theo ?toa=ID hoặc mặc định toa đầu)
+    // Toa đang chọn
     $coach_id = isset($_GET['toa']) ? (int)$_GET['toa'] : ($coaches[0]['id'] ?? null);
 
     if ($coach_id) {
-      // Lấy ghế của toa (CHỈ DÙNG NAMED PARAMS)
+      // Lấy ghế của toa - Sắp xếp theo Hàng rồi tới Cột
       $stmSeats = $pdo->prepare("
         SELECT id, so_ghe, trang_thai, hang, cot, co_ban,
                COALESCE(gia, :gve) AS gia
         FROM ghe
         WHERE id_toa = :id_toa
-        ORDER BY
-          CASE WHEN hang IS NULL THEN 0 ELSE 1 END DESC,
-          hang ASC, cot ASC, so_ghe ASC
+        ORDER BY hang ASC, cot ASC, so_ghe ASC
       ");
       $stmSeats->execute([
         ':gve'    => $trip['gia_ve'],
@@ -118,12 +135,87 @@ $header_menus = [
   .card{border-radius:16px}
   .coach-pill{min-width:220px}
   .coach-pill .small{opacity:.85}
-  .seat-grid{display:grid;grid-template-columns:repeat(6,64px);gap:12px;justify-content:center}
-  @media(max-width:576px){.seat-grid{grid-template-columns:repeat(4,56px);gap:10px}}
-  .seat{width:64px;height:64px;border-radius:12px;border:2px solid #e5e7eb;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;cursor:pointer;user-select:none}
-  .seat.available:hover{border-color:#0d6efd;box-shadow:0 2px 14px rgba(13,110,253,.15)}
-  .seat.selected{background:#0d6efd;border-color:#0d6efd;color:#fff}
-  .seat.booked{background:#e9ecef;border-color:#e9ecef;color:#8a8f98;text-decoration:line-through;cursor:not-allowed}
+
+  /* === NEW CSS FOR TRAIN COACH LAYOUT === */
+  /* Container chính (Toa tàu nằm ngang) */
+  .train-coach-map {
+    display: flex;
+    flex-direction: row; /* Xếp ngang */
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    justify-content: center;
+    gap: 15px; /* Khoảng cách giữa các hàng */
+    padding: 40px 25px;
+    border: 3px solid #2d5a86;
+    border-radius: 16px;
+    background: #fff;
+    align-items: center;
+    min-height: 280px;
+    /* Scrollbar đẹp */
+    scrollbar-width: thin;
+    scrollbar-color: #2d5a86 #e9ecef;
+  }
+  .train-coach-map::-webkit-scrollbar { height: 8px; }
+  .train-coach-map::-webkit-scrollbar-track { background: #e9ecef; border-radius: 4px; }
+  .train-coach-map::-webkit-scrollbar-thumb { background: #2d5a86; border-radius: 4px; }
+
+  /* Một hàng ghế (thực tế là 1 cột dọc gồm 4 ghế) */
+  .coach-row {
+    display: flex;
+    flex-direction: column;
+    gap: 25px; /* Khoảng cách lớn giữa cặp ghế trên và dưới (lối đi) */
+    position: relative;
+    padding: 0 4px;
+    flex-shrink: 0;
+  }
+
+  /* Kẻ vạch vàng nâu (cái bàn/vách) nằm dọc bên trái mỗi hàng ghế */
+  .coach-row::before {
+    content: '';
+    position: absolute;
+    left: -8px; /* Căn chỉnh vị trí thanh */
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    background-color: #a68b55; /* MÀU VÀNG NÂU */
+    border-radius: 3px;
+    z-index: 1;
+  }
+  /* Ẩn thanh vàng cho hàng đầu tiên */
+  .coach-row:first-child::before { display: none; }
+
+  /* Group cặp ghế (Trên và Dưới) */
+  .seat-pair {
+    display: flex;
+    flex-direction: column;
+    gap: 6px; /* Khoảng cách giữa 2 ghế sát nhau */
+  }
+
+  /* Style ghế */
+  .seat {
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    border: 1px solid #adb5bd;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+    color: #495057;
+    cursor: pointer;
+    z-index: 2; /* Nổi lên trên thanh vàng */
+    transition: all 0.2s;
+    user-select: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+  .seat.available:hover { border-color: #0d6efd; transform: scale(1.05); box-shadow: 0 4px 8px rgba(13,110,253,0.15); }
+  .seat.selected { background: #0d6efd; color: white; border-color: #0d6efd; }
+  .seat.booked { background: #e9ecef; color: #adb5bd; border-color: #dee2e6; cursor: not-allowed; text-decoration: line-through; }
+  
+  /* === END NEW CSS === */
+
   .legend .dot{width:14px;height:14px;border-radius:4px;display:inline-block;margin-right:6px;vertical-align:middle}
   .dot-available{background:#fff;border:2px solid #e5e7eb}
   .dot-selected{background:#0d6efd}
@@ -137,7 +229,7 @@ $header_menus = [
 <nav class="navbar navbar-expand-lg navbar-dark" style="background:#0d6efd;">
   <div class="container">
     <a class="navbar-brand d-flex align-items-center gap-2" href="index.php">
-      <img src="assets/LOGO_n.png" alt=""><span class="fw-bold">Vé tàu</span>
+      <span class="fw-bold">Vé tàu</span>
     </a>
     <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#nav"><span class="navbar-toggler-icon"></span></button>
     <div class="collapse navbar-collapse" id="nav">
@@ -167,16 +259,16 @@ $header_menus = [
       </div>
       <?php if($coaches): ?>
       <div class="card-footer bg-white">
-        <ul class="nav nav-pills gap-2 flex-nowrap overflow-auto">
+        <ul class="nav nav-pills gap-2 flex-nowrap overflow-auto pb-2">
           <?php foreach($coaches as $c): ?>
           <li class="nav-item">
             <a class="nav-link coach-pill <?= $c['id']==$coach_id?'active':'' ?>"
                href="?id=<?= (int)$trip['id'] ?>&toa=<?= (int)$c['id'] ?>">
-              <div class="fw-semibold"><?=h($c['ten_toa'])?>: <?=h($c['loai_toa'])?></div>
-              <div class="small">
-                Còn <?= (int)$c['con_cho'] ?> chỗ |
-                Giá từ <?= number_format((int)$c['gia_tu'],0,',','.') ?>
-                <?= $c['gia_den'] && $c['gia_den']!=$c['gia_tu'] ? ' - '.number_format((int)$c['gia_den'],0,',','.') : '' ?> VNĐ
+              <div class="fw-semibold"><?=h($c['ten_toa'])?></div>
+              <div class="small"><?=h($c['loai_toa'])?></div>
+              <div class="small mt-1">
+                Còn <?= (int)$c['con_cho'] ?> chỗ | 
+                <?= number_format((int)$c['gia_tu'],0,',','.') ?> đ
               </div>
             </a>
           </li>
@@ -190,50 +282,85 @@ $header_menus = [
       <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0">
           <?php $cur=null; foreach($coaches as $c){ if($c['id']==$coach_id){ $cur=$c; break; } }
-            echo $cur ? h($cur['ten_toa'].': '.$cur['loai_toa']) : 'Sơ đồ ghế';
+            echo $cur ? h($cur['ten_toa']) : 'Sơ đồ ghế';
           ?>
           <?php if($seats && array_sum(array_column($seats,'co_ban'))>0): ?>
-            <span class="ms-2 ban-chip">Bàn</span>
+            <span class="ms-2 ban-chip">Có bàn</span>
           <?php endif; ?>
         </h5>
         <div class="legend small">
-          <span class="me-3"><span class="dot dot-available border"></span> Chỗ trống</span>
-          <span class="me-3"><span class="dot dot-selected"></span> Chỗ đang chọn</span>
-          <span><span class="dot dot-booked"></span> Chỗ đã bán</span>
+          <span class="me-3"><span class="dot dot-available border"></span> Trống</span>
+          <span class="me-3"><span class="dot dot-selected"></span> Đang chọn</span>
+          <span><span class="dot dot-booked"></span> Đã bán</span>
         </div>
       </div>
+      
       <div class="card-body">
         <?php if(!$seats): ?>
-          <div class="text-muted">Không có ghế nào để chọn.</div>
+          <div class="text-muted p-4 text-center">Không có dữ liệu ghế cho toa này.</div>
         <?php else: ?>
-          <div id="seatGrid" class="seat-grid" role="grid" aria-label="Sơ đồ ghế">
+          
+          <div id="seatMapArea" class="train-coach-map">
+            <div style="writing-mode: vertical-lr; font-weight:bold; color:#ccc; transform: rotate(180deg); margin-right:10px; flex-shrink:0;">ĐẦU TOA</div>
+
             <?php
-              // Nếu có hang/cot thì render đúng layout
-              $haveGrid=false; foreach($seats as $s){ if($s['hang']!==null && $s['cot']!==null){ $haveGrid=true; break; } }
-              if ($haveGrid){
-                $map=[]; $maxR=0; $maxC=0;
-                foreach($seats as $s){ $r=(int)$s['hang']; $c=(int)$s['cot']; $map[$r][$c]=$s; $maxR=max($maxR,$r); $maxC=max($maxC,$c); }
-                for($r=1;$r<=$maxR;$r++){
-                  for($c=1;$c<=$maxC;$c++){
-                    if (!isset($map[$r][$c])) { echo '<div class="seat" style="visibility:hidden"></div>'; continue; }
-                    $s=$map[$r][$c]; $cls=$s['trang_thai']==='da_dat'?'booked':'available';
-                    echo '<button type="button" class="seat '.$cls.'" data-seat-id="'.(int)$s['id'].'"'.
-                         ' title="Ghế '.h($s['so_ghe']).' • '.number_format((int)$s['gia'],0,',','.').' VNĐ">'.
-                         h($s['so_ghe']).'</button>';
-                  }
-                }
-              } else {
-                foreach($seats as $s){
-                  $cls=$s['trang_thai']==='da_dat'?'booked':'available';
-                  echo '<button type="button" class="seat '.$cls.'" data-seat-id="'.(int)$s['id'].'"'.
-                       ' title="Ghế '.h($s['so_ghe']).' • '.number_format((int)$s['gia'],0,',','.').' VNĐ">'.
-                       h($s['so_ghe']).'</button>';
-                }
-              }
+            // 1. Nhóm ghế
+            $map = []; 
+            $maxR = 0;
+            foreach($seats as $s){ 
+                $r = (int)$s['hang']; 
+                $c = (int)$s['cot']; 
+                $map[$r][$c] = $s; 
+                if($r > $maxR) $maxR = $r;
+            }
+
+            // 2. Vẽ từng hàng
+            for($r = 1; $r <= $maxR; $r++): 
+                if(empty($map[$r])) continue; 
             ?>
+            
+            <div class="coach-row" data-row="<?= $r ?>">
+                
+                <div class="seat-pair">
+                    <?php foreach([2, 1] as $p): // Đảo thứ tự 2 trước 1 để khớp layout thực tế ?> 
+                        <?php if(isset($map[$r][$p])): 
+                            $s = $map[$r][$p];
+                            $cls = ($s['trang_thai'] === 'da_dat') ? 'booked' : 'available';
+                            if(in_array((int)$s['id'], $_SESSION['cart'])) $cls .= ' selected';
+                        ?>
+                            <button type="button" class="seat <?= $cls ?>" 
+                                    data-seat-id="<?= (int)$s['id'] ?>"
+                                    title="Ghế <?= h($s['so_ghe']) ?> - Giá: <?= number_format((int)$s['gia'],0,',','.') ?> VNĐ">
+                                <?= h($s['so_ghe']) ?>
+                            </button>
+                        <?php else: ?><div class="seat" style="visibility:hidden"></div><?php endif; ?>
+                    <?php endforeach; ?>
+                </div>
+
+                <div class="seat-pair">
+                    <?php foreach([3, 4] as $p): ?>
+                        <?php if(isset($map[$r][$p])): 
+                            $s = $map[$r][$p];
+                            $cls = ($s['trang_thai'] === 'da_dat') ? 'booked' : 'available';
+                            if(in_array((int)$s['id'], $_SESSION['cart'])) $cls .= ' selected';
+                        ?>
+                            <button type="button" class="seat <?= $cls ?>" 
+                                    data-seat-id="<?= (int)$s['id'] ?>"
+                                    title="Ghế <?= h($s['so_ghe']) ?> - Giá: <?= number_format((int)$s['gia'],0,',','.') ?> VNĐ">
+                                <?= h($s['so_ghe']) ?>
+                            </button>
+                        <?php else: ?><div class="seat" style="visibility:hidden"></div><?php endif; ?>
+                    <?php endforeach; ?>
+                </div>
+
+            </div>
+            <?php endfor; ?>
+            
+            <div style="writing-mode: vertical-lr; font-weight:bold; color:#ccc; transform: rotate(180deg); margin-left:10px; flex-shrink:0;">CUỐI TOA</div>
           </div>
-        <?php endif; ?>
+          <?php endif; ?>
       </div>
+
       <div class="sticky-summary">
         <div class="d-flex flex-wrap align-items-center gap-3">
           <div><strong>Đã chọn:</strong> <span id="selCount">0</span> chỗ</div>
@@ -259,7 +386,7 @@ $header_menus = [
 <script>
 (() => {
   const MAX_SELECT = 6;
-  const seatGrid = document.getElementById('seatGrid');
+  const seatGrid = document.getElementById('seatMapArea');
   const selCount = document.getElementById('selCount');
   const selPrice = document.getElementById('selPrice');
   const btnAdd   = document.getElementById('btnAdd');
@@ -268,8 +395,10 @@ $header_menus = [
 
   const priceOf = el => {
     const t = el.getAttribute('title')||'';
-    const m = t.match(/([\d\.]+)\s*VNĐ$/);
-    return m ? parseInt(m[1].replace(/\./g,''),10) : 0;
+    // Regex bắt số tiền trong title (Khớp với PHP đã sửa ở trên)
+    const m = t.match(/Giá:\s*([\d\.]+)\s*VNĐ/);
+    if(m) return parseInt(m[1].replace(/\./g,''),10);
+    return 0;
   };
   const toast = (msg,type='secondary') => {
     const el = document.createElement('div');
@@ -283,6 +412,10 @@ $header_menus = [
   };
 
   let selected = new Set();
+  
+  // Load các ghế đã có trong session (từ PHP class .selected)
+  document.querySelectorAll('.seat.selected').forEach(el => selected.add(el.dataset.seatId));
+
   const update = () => {
     let total = 0;
     selected.forEach(id => {
@@ -294,12 +427,17 @@ $header_menus = [
   };
 
   seatGrid?.addEventListener('click', e=>{
-    const el = e.target.closest('.seat'); if(!el || el.classList.contains('booked')) return;
+    const el = e.target.closest('.seat'); 
+    if(!el || el.classList.contains('booked') || el.style.visibility === 'hidden') return;
+    
     const id = el.dataset.seatId;
-    if (el.classList.contains('selected')) { el.classList.remove('selected'); selected.delete(id); }
-    else {
+    if (el.classList.contains('selected')) { 
+      el.classList.remove('selected'); 
+      selected.delete(id); 
+    } else {
       if (selected.size >= MAX_SELECT){ toast('Bạn chỉ chọn tối đa '+MAX_SELECT+' chỗ.','danger'); return; }
-      el.classList.add('selected'); selected.add(id);
+      el.classList.add('selected'); 
+      selected.add(id);
     }
     update();
   });
@@ -312,9 +450,11 @@ $header_menus = [
   btnAdd?.addEventListener('click', async ()=>{
     if (selected.size===0){ toast('Vui lòng chọn ít nhất một chỗ.','danger'); return; }
     const ids = [...selected];
+    
     // Kiểm tra realtime
     const chk = await fetch(`dat_ve.php?action=check&ids=${encodeURIComponent(JSON.stringify(ids))}`).then(r=>r.json()).catch(()=>null);
-    if (!chk || !chk.ok){ toast('Không kiểm tra được trạng thái chỗ.','danger'); return; }
+    if (!chk || !chk.ok){ toast('Lỗi kết nối server.','danger'); return; }
+    
     const conflicts = ids.filter(id => chk.seats[id]==='da_dat');
     if (conflicts.length){
       conflicts.forEach(id=>{
@@ -322,17 +462,19 @@ $header_menus = [
         if (el){ el.classList.remove('selected'); el.classList.add('booked'); selected.delete(id); }
       });
       update();
-      toast('Một số chỗ đã được bán trước, vui lòng chọn chỗ khác.','danger');
+      toast('Chỗ bạn chọn vừa có người khác mua xong.','danger');
       return;
     }
+    
     // Gửi thêm vào giỏ
     const fd = new FormData();
     fd.append('selected_seats', JSON.stringify(ids));
     fd.append('csrf', <?= json_encode($CSRF) ?>);
+    
     const res = await fetch('dat_ve.php', {method:'POST', body:fd}).then(r=>r.json()).catch(()=>null);
     if (res && (res.status==='success' || res.status==='partial')){
-      if (res.conflict?.length) toast('Một số chỗ bị giữ trước, phần còn lại đã thêm.','warning');
-      else toast('Đã thêm vào giỏ hàng.','success');
+      if (res.conflict?.length) toast('Một số chỗ bị trùng, các chỗ còn lại đã thêm.','warning');
+      else toast('Đã thêm vào giỏ hàng thành công!','success');
       setTimeout(()=>location.href='gio_hang.php', 500);
     } else toast(res?.message || 'Không thể thêm vào giỏ.','danger');
   });

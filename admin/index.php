@@ -1,11 +1,12 @@
 <?php
 // admin/index.php — Dashboard quản trị
 if (session_status() === PHP_SESSION_NONE) session_start();
-require_once __DIR__ . '/../includes/db.php'; // tạo $pdo (PDO)
+require_once __DIR__ . '/../includes/db.php';   // tạo $pdo (PDO)
+require_once __DIR__ . '/../includes/app.php';  // BASE_URL + hàm url()
 
 // ===== Middleware: chỉ cho phép admin =====
 if (!isset($_SESSION['user_id']) || ($_SESSION['role'] ?? '') !== 'admin') {
-  header('Location: /login.php'); exit;
+  header('Location: ' . url('login.php')); exit;
 }
 
 // ===== Helpers =====
@@ -53,7 +54,6 @@ $payments = $pdo->query("
 ")->fetchAll(PDO::FETCH_ASSOC);
 
 // ===== 5 chuyến sắp khởi hành =====
-// Lưu ý schema: ngay_di (YYYY-MM-DD), gio_di (HH:MM:SS)
 $upcoming = $pdo->query("
   SELECT id, ten_tau, ga_di, ga_den, ngay_di, gio_di, gia_ve
   FROM chuyen_tau
@@ -74,10 +74,8 @@ $upcoming = $pdo->query("
   <style>
     :root { --sidebar-w: 250px; }
     body { background:#f6f8fb; }
-    .sidebar {
-      position: fixed; inset: 0 auto 0 0; width: var(--sidebar-w);
-      background:#0d6efd; color:#fff; padding:14px 10px; overflow-y:auto;
-    }
+    .sidebar { position: fixed; inset: 0 auto 0 0; width: var(--sidebar-w);
+      background:#0d6efd; color:#fff; padding:14px 10px; overflow-y:auto; }
     .sidebar a { color:#e7f1ff; text-decoration:none; display:flex; align-items:center; gap:10px;
       padding:10px 12px; border-radius:10px; }
     .sidebar a:hover, .sidebar a.active { background:#0b5ed7; color:#fff; }
@@ -95,17 +93,17 @@ $upcoming = $pdo->query("
     <nav class="mt-1">
       <a class="active" href="#"><i class="ti ti-layout-dashboard"></i>Dashboard</a>
       <div class="small text-white-50 px-2 mt-3 mb-1">Dữ liệu</div>
-      <a href="/admin/users.php"><i class="ti ti-users"></i>Người dùng</a>
-      <a href="/admin/chuyen_tau.php"><i class="ti ti-calendar-time"></i>Chuyến tàu</a>
-      <a href="/admin/toa_tau.php"><i class="ti ti-building-rail"></i>Toa & Ghế</a>
-      <a href="/admin/thanh_toan.php"><i class="ti ti-credit-card"></i>Thanh toán</a>
-      <a href="/admin/ve_da_dat.php"><i class="ti ti-ticket"></i>Vé đã đặt</a>
+      <a href="<?= url('admin/users.php') ?>"><i class="ti ti-users"></i>Người dùng</a>
+      <a href="<?= url('admin/chuyen_tau.php') ?>"><i class="ti ti-calendar-time"></i>Chuyến tàu</a>
+      <a href="<?= url('admin/toa_tau.php') ?>"><i class="ti ti-building-rail"></i>Toa & Ghế</a>
+      <a href="<?= url('admin/thanh_toan.php') ?>"><i class="ti ti-credit-card"></i>Thanh toán</a>
+      <a href="<?= url('admin/ve_da_dat.php') ?>"><i class="ti ti-ticket"></i>Vé đã đặt</a>
       <div class="small text-white-50 px-2 mt-3 mb-1">Nội dung</div>
-      <a href="/admin/menus.php"><i class="ti ti-list-details"></i>Menu website</a>
-      <a href="/admin/settings.php"><i class="ti ti-settings"></i>Cài đặt</a>
+      <a href="<?= url('admin/menus.php') ?>"><i class="ti ti-list-details"></i>Menu website</a>
+      <a href="<?= url('admin/settings.php') ?>"><i class="ti ti-settings"></i>Cài đặt</a>
       <div class="small text-white-50 px-2 mt-3 mb-1">Hệ thống</div>
-      <a href="/"><i class="ti ti-home"></i>Về trang người dùng</a>
-      <a href="/logout.php"><i class="ti ti-logout"></i>Đăng xuất</a>
+      <a href="<?= url('') ?>"><i class="ti ti-home"></i>Về trang người dùng</a>
+      <a href="<?= url('logout.php') ?>"><i class="ti ti-logout"></i>Đăng xuất</a>
     </nav>
   </aside>
 
@@ -176,7 +174,7 @@ $upcoming = $pdo->query("
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-center mb-2">
                 <h5 class="mb-0">Giao dịch gần đây</h5>
-                <a class="btn btn-sm btn-outline-primary" href="/admin/thanh_toan.php">Xem tất cả</a>
+                <a class="btn btn-sm btn-outline-primary" href="<?= url('admin/thanh_toan.php') ?>">Xem tất cả</a>
               </div>
               <div class="table-responsive">
                 <table class="table align-middle table-striped mb-0">
@@ -206,7 +204,7 @@ $upcoming = $pdo->query("
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-center mb-2">
                 <h5 class="mb-0">Chuyến sắp khởi hành</h5>
-                <a class="btn btn-sm btn-outline-primary" href="/admin/chuyen_tau.php">Quản lý chuyến</a>
+                <a class="btn btn-sm btn-outline-primary" href="<?= url('admin/chuyen_tau.php') ?>">Quản lý chuyến</a>
               </div>
               <div class="table-responsive">
                 <table class="table align-middle table-striped mb-0">
