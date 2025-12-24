@@ -112,11 +112,9 @@ if ($connected) {
               <a class="nav-link" href="<?= h($m['url']) ?>"><?= h($m['label']) ?></a>
             </li>
           <?php endforeach; ?>
-          <li class="nav-item"><a class="nav-link" href="gio_hang.php">GIỎ HÀNG (<?= $cart_count ?>)</a></li>
           <li class="nav-item"><a class="nav-link" href="dat_ve_thanh_cong.php">VÉ ĐÃ ĐẶT</a></li>
         </ul>
         <div class="d-flex align-items-center gap-2">
-          <button id="themeBtn" class="btn btn-sm btn-outline-light" title="Đổi giao diện"><i class="ti ti-sun"></i></button>
           <?php if (isset($_SESSION['user_id'])): ?>
             <a class="btn btn-sm btn-light" href="logout.php">ĐĂNG XUẤT</a>
           <?php else: ?>

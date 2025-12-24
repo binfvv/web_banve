@@ -119,7 +119,6 @@ function view_url($v){ $qs=$_GET; $qs['view']=$v; unset($qs['page']); return '?'
           <?php foreach($header_menus as $m): ?>
             <li class="nav-item"><a class="nav-link<?= (basename($m['url'])==='lich_trinh.php'?' active':'') ?>" href="<?= h($m['url']) ?>"><?= h($m['label']) ?></a></li>
           <?php endforeach; ?>
-          <li class="nav-item"><a class="nav-link" href="gio_hang.php">GIỎ HÀNG (<?= $cart_count ?>)</a></li>
           <li class="nav-item"><a class="nav-link" href="dat_ve_thanh_cong.php">VÉ ĐÃ ĐẶT</a></li>
         </ul>
         <div class="d-flex">

@@ -179,7 +179,7 @@ try {
         <?php foreach($header_menus as $m): ?>
           <li class="nav-item"><a class="nav-link" href="<?= h($m['url']) ?>"><?= h($m['label']) ?></a></li>
         <?php endforeach; ?>
-        <li class="nav-item"><a class="nav-link active" href="gio_hang.php">GIỎ HÀNG (<?= $cart_count ?>)</a></li>
+        <li class="nav-item"><a class="nav-link active" href="gio_ve.php">GIỎ VÉ (<?= $cart_count ?>)</a></li>
         <li class="nav-item"><a class="nav-link" href="dat_ve_thanh_cong.php">VÉ ĐÃ ĐẶT</a></li>
       </ul>
       <div class="d-flex">
